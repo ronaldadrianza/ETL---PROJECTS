@@ -1,0 +1,30 @@
+WITH 
+sellout AS (
+    SELECT *
+    FROM `bic-prd.gf_comercial_bic_prd_resultados_bq.VistaUnicaModelo_SellOut_Transaccional`
+),
+dProducto AS (
+    SELECT DISTINCT PrdSO_Referencia_Cod, PrdSO_UENCorporativa_Desc 
+    FROM `bic-prd.gf_comercial_bic_prd_resultados_bq.VistaUnicaModelo_dProdFam_SO`
+),
+dCliente AS (SELECT
+  *
+FROM
+  `bic-prd.gf_comercial_bic_prd_resultados_bq.VistaUnicaModelo_dCliente`
+WHERE
+  Extraccion_cod LIKE "CO-CBIA%")
+SELECT 
+     sellout.cliente_id,
+     dCliente.cliente_cod,
+    EXTRACT(YEAR FROM DATE_TRUNC(sellout.Factura_Fecha_Movimiento_F, YEAR)) AS Anio,
+    EXTRACT(MONTH FROM DATE_TRUNC(sellout.Factura_Fecha_Movimiento_F, MONTH)) AS Mes,
+dProducto.PrdSO_UENCorporativa_Desc as UEN,
+  SUM(sellout.Valor_Venta) AS Total_Venta,
+FROM 
+    sellout
+LEFT JOIN 
+    dProducto ON  sellout.PrdSO_Referencia_Cod = dProducto.PrdSO_Referencia_Cod LEFT JOIN dCliente ON dCliente.cliente_id = sellout.cliente_id
+    WHERE cliente_cod = "900481257-2787"
+GROUP BY sellout.cliente_id, Anio, Mes,UEN, dCliente.cliente_cod
+LIMIT 
+    10;
