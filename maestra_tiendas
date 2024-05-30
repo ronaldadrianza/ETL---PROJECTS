@@ -1,3 +1,4 @@
+--- Fact Table
 WITH 
 sellout AS (
     SELECT *
@@ -8,52 +9,83 @@ dProducto AS (
     FROM `bic-prd.gf_comercial_bic_prd_resultados_bq.VistaUnicaModelo_dProdFam_SO`
 ),
 dCliente AS (
-    SELECT *
+    SELECT DISTINCT cliente_id, cliente_cod, Cliente_Last, Cliente_Dir_last, SO_C_Cliente
     FROM `bic-prd.gf_comercial_bic_prd_resultados_bq.VistaUnicaModelo_dCliente`
     WHERE Extraccion_cod LIKE "CO-CBIA%"
 ),
 dAgencia AS (
-    SELECT *
+    SELECT DISTINCT Dtr_ClienteSap_Cod, Dtr_GrupoDetallista
     FROM `bic-prd.gf_comercial_bic_prd_resultados_bq.VistaUnicaModelo_dAgencia`
 ),
 dGeo AS (
-    SELECT *
+    SELECT DISTINCT ClienteEG_id, Cliente_EG1Std_Desc
     FROM `bic-prd.gf_comercial_bic_prd_resultados_bq.VistaUnicaModelo_dGeo`
+),
+AnnualData AS (
+    SELECT 
+        dCliente.SO_C_Cliente,
+        dCliente.cliente_id,
+        EXTRACT(YEAR FROM sellout.Factura_Fecha_Movimiento_F) AS Anio,
+        COUNT(DISTINCT sellout.PrdSO_Referencia_Cod) / 12 AS Total_SKUs_AVG,
+        SUM(sellout.Valor_Venta) / 12 AS Total_Venta_AVG,
+        COUNT(DISTINCT sellout.Factura_Numero) / 12 AS Total_Facturas_AVG
+    FROM 
+        `bic-prd.gf_comercial_bic_prd_resultados_bq.VistaUnicaModelo_SellOut_Transaccional` AS sellout
+    LEFT JOIN 
+        dCliente ON sellout.cliente_id = dCliente.cliente_id
+    WHERE sellout.Valor_Venta > 0.0000001
+    GROUP BY 
+        dCliente.SO_C_Cliente, dCliente.cliente_id, Anio
 )
 SELECT 
     sellout.cliente_id,
     dCliente.cliente_cod,
     dAgencia.Dtr_ClienteSap_Cod,
-    dGeo.ClienteEG_id,
-    CONCAT(dCliente.Cliente_Last, " | ", dCliente.Cliente_Dir_last, " | ",dGeo.Cliente_EG1Std_Desc) AS Llave_cliente,
-    dProducto.PrdSO_UENCorporativa_Desc as UEN,
-    EXTRACT(YEAR FROM DATE_TRUNC(sellout.Factura_Fecha_Movimiento_F, YEAR)) AS Anio,
-    EXTRACT(MONTH FROM DATE_TRUNC(sellout.Factura_Fecha_Movimiento_F, MONTH)) AS Mes,
-    SUM(sellout.Valor_Venta) AS Total_Venta 
+    dGeo.ClienteEG_id, 
+    CONCAT(dCliente.SO_C_Cliente, " | ", dCliente.Cliente_Last, " | ", dCliente.Cliente_Dir_last, " | ", dGeo.Cliente_EG1Std_Desc) AS Llave_cliente,
+    dProducto.PrdSO_UENCorporativa_Desc AS UEN,
+    EXTRACT(YEAR FROM sellout.Factura_Fecha_Movimiento_F) AS Anio,
+    EXTRACT(MONTH FROM sellout.Factura_Fecha_Movimiento_F) AS Mes,
+    SUM(sellout.Valor_Venta) AS Venta,
+    AnnualData.Total_SKUs_AVG,
+    AnnualData.Total_Venta_AVG,
+    AnnualData.Total_Facturas_AVG
 FROM 
     sellout
 LEFT JOIN 
     dProducto ON sellout.PrdSO_Referencia_Cod = dProducto.PrdSO_Referencia_Cod
 LEFT JOIN 
-    dCliente ON dCliente.cliente_id = sellout.cliente_id
+    dCliente ON sellout.cliente_id = dCliente.cliente_id  
 LEFT JOIN 
-    dAgencia ON dAgencia.Dtr_ClienteSap_Cod = sellout.Dtr_ClienteSap_Cod
+    dAgencia ON sellout.Dtr_ClienteSap_Cod = dAgencia.Dtr_ClienteSap_Cod 
 LEFT JOIN 
-    dGeo ON dGeo.ClienteEG_id = sellout.ClienteEG_id
+    dGeo ON sellout.ClienteEG_id = dGeo.ClienteEG_id 
+LEFT JOIN 
+    AnnualData ON sellout.cliente_id = AnnualData.cliente_id AND EXTRACT(YEAR FROM sellout.Factura_Fecha_Movimiento_F) = AnnualData.Anio
 WHERE 
-    dCliente.cliente_cod = "900481257-2787"
-    AND dAgencia.Dtr_GrupoDetallista = "Multi-Tiendas"
+    dAgencia.Dtr_GrupoDetallista = "Multi-Tiendas"
 GROUP BY 
     sellout.cliente_id,
     dCliente.cliente_cod,
     dAgencia.Dtr_ClienteSap_Cod,
     dGeo.ClienteEG_id,
     Llave_cliente,
-    UEN,
+    dProducto.PrdSO_UENCorporativa_Desc,
     Anio,
-    Mes
-LIMIT 
-    12;
+    Mes,
+    AnnualData.Total_SKUs_AVG,
+    AnnualData.Total_Venta_AVG,
+    AnnualData.Total_Facturas_AVG
 
+--- Dim Cliente
+SELECT DISTINCT cliente_id,cliente_cod,Cliente_Last,Cliente_Dir_last
+    FROM `bic-prd.gf_comercial_bic_prd_resultados_bq.VistaUnicaModelo_dCliente`
+    WHERE Extraccion_cod LIKE "CO-CBIA%"
 
+--- Dim Agencia
+SELECT *
+    FROM `bic-prd.gf_comercial_bic_prd_resultados_bq.VistaUnicaModelo_dAgencia`
 
+---Dim Geo
+SELECT DISTINCT ClienteEG_id, Cliente_EG1Std_Desc
+    FROM `bic-prd.gf_comercial_bic_prd_resultados_bq.VistaUnicaModelo_dGeo`
