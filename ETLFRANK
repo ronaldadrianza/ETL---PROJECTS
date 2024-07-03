@@ -1,17 +1,30 @@
 
-
-SELECT 
-    s.Dtr_ClienteSap_Cod,
-    a.Dtr_Desc AS Distribuidora,
-    a.Dtr_Agencia_DescStd as Agencia,
-    v.Vend_Nombre_Last as Cedula_Vendedor,
-    EXTRACT(MONTH FROM s.Factura_Fecha_Movimiento_F) AS Mes,
-    SUM(s.Valor_Venta) AS Venta
-FROM 
-    `bic-prd.gf_comercial_bic_prd_resultados_bq.VistaUnicaModelo_SellOut_Transaccional` AS s
-    LEFT JOIN `bic-prd.gf_comercial_bic_prd_resultados_bq.VistaUnicaModelo_dAgencia` AS a ON s.Dtr_ClienteSap_Cod = a.Dtr_ClienteSap_Cod
-    LEFT JOIN `bic-prd.gf_comercial_bic_prd_resultados_bq.VistaUnicaModelo_dVend` AS v ON  s.Vend_id = v.Vend_id
-WHERE EXTRACT(YEAR FROM s.Factura_Fecha_Movimiento_F) = 2024
-GROUP BY 
-    s.Dtr_ClienteSap_Cod,Agencia,Distribuidora,Cedula_Vendedor,Mes
-LIMIT 1;
+    SELECT
+        a.Extraccion_Cod,
+        s.Dtr_ClienteSap_Cod,
+        s.cliente_id AS ID_Cliente,
+        a.Dtr_Desc AS Distribuidora,
+        a.Dtr_Agencia_DescStd as Agencia,
+        v.Vend_Cedula as Cedula,
+        v.Vend_Nombre_Last,
+        EXTRACT(MONTH FROM s.Factura_Fecha_Movimiento_F) AS Mes,
+        SUM(s.Valor_Venta) AS Venta
+    FROM 
+        `bic-prd.gf_comercial_bic_prd_resultados_bq.VistaUnicaModelo_SellOut_Transaccional` AS s
+        LEFT JOIN `bic-prd.gf_comercial_bic_prd_resultados_bq.VistaUnicaModelo_dAgencia` AS a ON s.Dtr_ClienteSap_Cod = a.Dtr_ClienteSap_Cod
+        LEFT JOIN `bic-prd.gf_comercial_bic_prd_resultados_bq.VistaUnicaModelo_dVend` AS v ON s.Vend_id = v.Vend_id
+        LEFT JOIN `bic-prd.gf_comercial_bic_prd_resultados_bq.VistaUnicaModelo_dProdFam_SO` AS p ON s.PrdSO_Referencia_Cod = p.PrdSO_Referencia_Cod
+    WHERE 
+        EXTRACT(YEAR FROM s.Factura_Fecha_Movimiento_F) = 2024 
+        AND s.Valor_Venta > 0.0000001
+        AND p.PrdSO_UENCorporativa_Desc = "Fempro" 
+        AND a.Extraccion_Cod LIKE "%CO%" 
+    GROUP BY 
+        a.Extraccion_Cod,
+        s.Dtr_ClienteSap_Cod, 
+        ID_Cliente, 
+        Agencia, 
+        Distribuidora, 
+        Cedula, 
+        v.Vend_Nombre_Last, 
+        Mes
