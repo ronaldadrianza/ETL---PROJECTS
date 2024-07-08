@@ -16,9 +16,8 @@
         LEFT JOIN `bic-prd.gf_comercial_bic_prd_resultados_bq.VistaUnicaModelo_dProdFam_SO` AS p ON s.PrdSO_Referencia_Cod = p.PrdSO_Referencia_Cod
     WHERE 
         EXTRACT(YEAR FROM s.Factura_Fecha_Movimiento_F) = 2024 
-        AND s.Valor_Venta > 0.0000001
         AND p.PrdSO_UENCorporativa_Desc = "Fempro" 
-        AND a.Extraccion_Cod LIKE "%CO%" 
+        AND a.Extraccion_Cod LIKE "CO-CBIA%" 
     GROUP BY 
         a.Extraccion_Cod,
         s.Dtr_ClienteSap_Cod, 
