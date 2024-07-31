@@ -1,0 +1,73 @@
+UPDATE `gf-controltower-test-dev.POS_Category.Ptos_Venta_Category` 
+SET CADENA_COD = '59', CADENA_NOMBRE = 'SURTIPLAZA' WHERE CADENA_COD = '10' AND FECHA_DE_ACTUALIZACION = '2024-07-29'
+
+INSERT INTO `gf-controltower-test-dev.POS_Category_Productos.tblPRD_MARCA` (TE_FAB_COD,TE_MARCA_COD,TE_MARCA_DL) VALUES ('36','1000','FAMILY CARE')
+
+
+UPDATE `gf-controltower-test-dev.POS_Category.Ptos_Venta_Category` 
+SET CADENA_COD = '59', CADENA_NOMBRE = 'SURTIPLAZA' WHERE CADENA_COD = '10' AND FECHA_DE_ACTUALIZACION = '2024-07-29'
+
+DELETE `gf-controltower-test-dev.POS_Category.Historico_Ventas_Category` 
+WHERE CADENA_NOMBRE = 'SURTIFAMILIAR' AND FECHA BETWEEN '2024-01-01' AND '2024-05-01'
+
+INSERT INTO
+  `gf-controltower-test-dev.POS_Category.Historico_Ventas_Category` (
+    CATEGORIA, EAN_PROD, CADENA_COD, COD_PDV, FECHA,
+    CANTIDAD, VENTA, COSTO, CADENA_NOMBRE, CANAL)
+
+SELECT 
+  CASE
+    WHEN TER_CAT_COD = '1' THEN 'Family'
+    WHEN TER_CAT_COD = '2' THEN 'Fempro'
+    WHEN TER_CAT_COD = '3' THEN 'Inco'
+    WHEN TER_CAT_COD = '4' THEN 'Baby'
+    WHEN TER_CAT_COD = '5' THEN 'Petys'
+    WHEN TER_CAT_COD = '6' THEN 'Pomys'
+    ELSE TER_CAT_COD END,
+    EAN_PROD, CADENA_COD, COD_PDV,
+  PARSE_DATE("%Y%m%d", FECHA),
+  CAST(CANTIDAD AS INT64), CAST(VENTA AS INT64), CAST(COSTO AS INT64), CADENA_NOMBRE, CANAL
+FROM `gf-controltower-test-dev.POS_Category.POS_PAQUETES` as POS_PAQ
+  JOIN `gf-controltower-test-dev.POS_Category_Productos.Tabla_equivalencias_referencia` AS t3
+  ON POS_PAQ.EAN_PROD = T3.TER_CB
+    WHERE NOT EXISTS ( SELECT 1
+      FROM `gf-controltower-test-dev.POS_Category.Historico_Ventas_Category` AS existing_records
+      WHERE DATE(PARSE_DATE("%Y%m%d", POS_PAQ.FECHA)) = existing_records.Fecha
+      AND POS_PAQ.CADENA_COD = existing_records.CADENA_COD
+      AND POS_PAQ.COD_PDV = existing_records.COD_PDV
+      AND POS_PAQ.EAN_PROD = existing_records.EAN_PROD
+      AND POS_PAQ.CANAL = existing_records.CANAL) 
+      AND POS_PAQ.EAN_PROD NOT IN (
+          SELECT EAN_PROD FROM `gf-controltower-test-dev.POS_Category_Productos.EAN_NO_CARGAR` )
+      AND T3.TER_CAT_COD IN ('1','2','3','4','5','6');
+
+
+
+      SELECT * FROM `gf-controltower-test-dev.POS_Category_Productos.view_maestra_productos_total` WHERE TER_CB IN ("7702026155094", "7702026155100", "7702026155124", "7702026155131")
+
+
+      SELECT * FROM `gf-controltower-test-dev.POS_Category_Productos.view_maestra_productos_total` WHERE TE_MARCA_COD = '18'
+
+UPDATE `gf-controltower-test-dev.POS_Category_Productos.Tabla_equivalencias_referencia`
+SET TER_FAB_COD ='1',TER_MARCA_COD = '3', TER_SEG_1_COD='2012' , TER_SEG_2_COD='2012',TER_SEG_3_COD='22015',TER_SEG_4_COD='0'
+WHERE TER_CB IN ("7702026155131")
+
+
+UPDATE `gf-controltower-test-dev.POS_Category_Productos.Tabla_equivalencias_referencia`
+SET TER_MARCA_COD ='1211'
+WHERE TER_CB IN ("9330344001311",
+"9330344001281")
+
+
+
+
+
+UPDATE `POS_Category.Ptos_Venta_Category` 
+SET PV_FORMATO_CONTINUO_COD = '107', PV_FORMATO_CONTINUO = 'SURTIMAX' WHERE PV_PTOVENTA_CONT_COD IN ('4381','4382') AND PV_CADENA_CONT_COD = '1'
+
+
+INSERT INTO `gf-controltower-test-dev.POS_Category_Productos.tblPRD_FABRICANTE` (TE_FAB_COD,TE_FAB_DL) VALUES ('1200', 'T/L/D TODOS LOS DIAS')
+
+INSERT INTO `gf-controltower-test-dev.POS_Category_Productos.tblPRD_MARCA` (TE_FAB_COD,TE_MARCA_COD,TE_MARCA_DL) VALUES ('52','1211' ,'WET ONES')
+
+DELETE `gf-controltower-test-dev.POS_Category_Productos.tblPRD_MARCA` WHERE TE_MARCA_COD = '1210' AND TE_MARCA_DL = 'PERSONAL CHOICE'
