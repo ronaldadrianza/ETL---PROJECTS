@@ -1,0 +1,25 @@
+SELECT
+    s.cliente_id,
+    a.extraccion_cod,
+    a.cliente_nombre,
+    a.Cliente_Dir_last,
+
+    EXTRACT(MONTH FROM s.Factura_Fecha_Movimiento_F) AS Mes,
+    SUM(s.Valor_Venta) AS Venta
+FROM 
+    `bic-prd.gf_comercial_bic_prd_resultados_bq.VistaUnicaModelo_SellOut_Transaccional` AS s
+LEFT JOIN 
+    `bic-prd.gf_comercial_bic_prd_resultados_bq.VistaUnicaModelo_dCliente` AS a 
+    ON s.cliente_id = a.cliente_id
+LEFT JOIN `bic-prd.gf_comercial_bic_prd_resultados_bq.VistaUnicaModelo_dProdFam_SO` AS p
+ ON s.PrdSO_Referencia_Cod = p.PrdSO_Referencia_Cod
+WHERE 
+    EXTRACT(YEAR FROM s.Factura_Fecha_Movimiento_F) IN (2024,2023)  
+    AND a.extraccion_cod LIKE "%150%"
+GROUP BY
+    s.cliente_id,
+    a.extraccion_cod,
+    a.cliente_nombre,
+    a.Cliente_Dir_last,
+    Mes
+LIMIT 10;
