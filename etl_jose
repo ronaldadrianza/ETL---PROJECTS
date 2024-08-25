@@ -1,25 +1,57 @@
 SELECT
-    s.cliente_id,
-    a.extraccion_cod,
-    a.cliente_nombre,
-    a.Cliente_Dir_last,
-
-    EXTRACT(MONTH FROM s.Factura_Fecha_Movimiento_F) AS Mes,
-    SUM(s.Valor_Venta) AS Venta
+    s.cliente_id, 
+    s.PrdSO_Referencia_Cod,
+    s.Dtr_ClienteSap_Cod,
+    s.Cantidad_venta,
+    s.Valor_Venta,
+    s.Factura_Numero,
+    s.Factura_Fecha_Movimiento_F
 FROM 
     `bic-prd.gf_comercial_bic_prd_resultados_bq.VistaUnicaModelo_SellOut_Transaccional` AS s
 LEFT JOIN 
     `bic-prd.gf_comercial_bic_prd_resultados_bq.VistaUnicaModelo_dCliente` AS a 
     ON s.cliente_id = a.cliente_id
-LEFT JOIN `bic-prd.gf_comercial_bic_prd_resultados_bq.VistaUnicaModelo_dProdFam_SO` AS p
- ON s.PrdSO_Referencia_Cod = p.PrdSO_Referencia_Cod
 WHERE 
-    EXTRACT(YEAR FROM s.Factura_Fecha_Movimiento_F) IN (2024,2023)  
+    EXTRACT(YEAR FROM s.Factura_Fecha_Movimiento_F) BETWEEN 2023 AND 2024
     AND a.extraccion_cod LIKE "%150%"
-GROUP BY
-    s.cliente_id,
-    a.extraccion_cod,
-    a.cliente_nombre,
-    a.Cliente_Dir_last,
-    Mes
-LIMIT 10;
+
+
+
+SELECT
+PrdSO_UENCorporativa_Desc,
+PrdSO_Categoria_Desc,
+PrdSO_Producto_Desc,
+PrdSO_Referencia,
+PrdSO_Referencia_Cod
+FROM 
+`bic-prd.gf_comercial_bic_prd_resultados_bq.VistaUnicaModelo_dProdFam_SO`
+
+
+
+SELECT
+cliente_id,
+extraccion_cod,
+cliente_cod,
+cliente_nombre
+FROM 
+`bic-prd.gf_comercial_bic_prd_resultados_bq.VistaUnicaModelo_dCliente`
+
+
+SELECT * 
+Dtr_ClienteSap_Cod,
+Dtr_Desc,
+Dtr_Agencia_DescStd,
+Dtr_Nit_SAP,
+Dtr_Canal_Desc
+from `bic-prd.gf_comercial_bic_prd_resultados_bq.VistaUnicaModelo_dAgencia`
+
+
+SELECT
+clienteUnico_id,
+ClienteUnicoGeo_Cod,
+SGeo_barrio,
+SGeo_Localidad
+SGeo_DirTrad
+FROM
+`bic-prd.gf_comercial_bic_prd_resultados_bq.VistaUnicaModelo_dClienteU`
+
