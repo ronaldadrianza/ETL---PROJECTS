@@ -1,4 +1,5 @@
 SELECT
+    a.extraccion_cod,
     s.cliente_id, 
     s.PrdSO_Referencia_Cod,
     s.Dtr_ClienteSap_Cod,
@@ -14,6 +15,7 @@ LEFT JOIN
 WHERE 
     EXTRACT(YEAR FROM s.Factura_Fecha_Movimiento_F) BETWEEN 2023 AND 2024
     AND a.extraccion_cod LIKE "%150%"
+
 
 
 
